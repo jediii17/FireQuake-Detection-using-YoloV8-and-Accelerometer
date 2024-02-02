@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta name="description" content="Fire and Earthquake Detection" />
+    <meta name="author" content="InnoTechjedi" />
+    <title>FireQuake Detection</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+     <link href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" rel="stylesheet"/>
+      <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+      <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+      <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+      <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+      <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+      <!--grAPH ChART-->
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cdbootstrap/css/bootstrap.min.css" />
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cdbootstrap/css/cdb.min.css" />
+      <script src="https://cdn.jsdelivr.net/npm/cdbootstrap/js/cdb.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/cdbootstrap/js/bootstrap.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.js"></script>
+    <style></style>
+
+    <title>FireQuake Detection</title>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row bg-danger pt-4 text-warning">
+        <h2 class="">FireQuake Detection</h2>
+      </br></br></br>
+      </div>
+
+      <div class="row row-fix-height pt-1 my-1">
+        <div class="col-lg-4 pt-2">
+            <div class="border box-padding">
+                <!--TABLE CONTENT FOR FIRE & SMOKE LOGS - lALAGYAN NG GALING SA SERVER-->
+                <h5 class="">Fire & Smoke Log History</h5>
+                <div class="height-scroll">
+                <table id="fire-smoke-table-logs" class="table table-striped row-fix-height">
+                    <thead>
+                      <tr>
+                        <th scope="col">Date & Time</th>
+                        <th scope="col">Message</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+
+                  </table>
+                </div>
+          </div>
+        </div>
+          <!--TABLE CONTENT FOR FIRE & SMOKE CHARTS - GALING SA SERVER -->
+        <div class="col-lg-8 pt-2">
+            <div class="border box-padding">
+                <h5 class="">Fire & Smoke Detection</h5>
+                <div id="video-container">
+                  <img id="webcam-img" src="#" alt="Real-time webcam" />
+                </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row row-fix-height pt-1 my-1">
+        <div class="col-lg-4 pt-2">
+            <div class="border box-padding">
+                <h5 class="">Earthquake Log History</h5>
+                 <!--EARTHQUAKE - lALAGYAN NG GALING SA SERVER-->
+                 <div class="height-scroll">
+                 <table id="earthquake-table-logs" class="table table-striped row-fix-height">
+                     <thead>
+                       <tr>
+                         <th scope="col">Date & Time</th>
+                         <th scope="col">Message</th>
+                       </tr>
+                     </thead>
+                     <tbody></tbody>
+                   </table>
+                 </div>
+          </div>
+        </div>
+        <div class="col-lg-8 pt-2">
+            <div class="border box-padding">
+                <h5 class="">Earthquake Detection</h5>
+                <canvas id="line-chart"></canvas>
+          </div>
+        </div>
+    </div>
+</div>
+  </body>
+</html>
+
+<style>
+  body{
+    background-color: azure;
+    }
+
+  .height-scroll{
+    height: 100vh;
+  }
+
+  #video-container{
+    height: 100vh;
+  }
+
+  #webcam-img{
+    width: 95%;
+    height: 73%;
+  }
+
+  .box-padding{
+padding: 10px;
+  }
+</style>
+
+<script>
+
+let datatableEarthquake = new DataTable('#earthquake-table-logs', {
+    scrollCollapse: true,
+    scrollY: '90vh',
+    dom: 'Bfrtip',
+    buttons: ['csv', 'excel', 'pdf', 'print'],
+});
+
+let earthquakeLogHistory = document.getElementById("earthquake-table-logs");
+
+const EQ_DETECT_INTERVAL = 2000;
+
+document.addEventListener("DOMContentLoaded", function () {
+    earthquakeDetection("earthquake");
+    logEquakeEvent("earthquake", "Detection started");
+    setInterval(getXYZ_value, EQ_DETECT_INTERVAL);
+    setInterval(getEquakeDetectionStatus, EQ_DETECT_INTERVAL);
+  });
+
+  //trigger earthquake detection loop
+  function earthquakeDetection(type) {
+    fetch("/earthquake_detection_started", {
+      method: "POST",
+      body: JSON.stringify({
+        type: type,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {})
+      .catch((error) => {
+        console.error("Error starting detection:", error);
+      });
+  }
+
+  function logEquakeEvent(type, message) {
+  const timestamp = new Date().toLocaleString();
+
+  if (type === "earthquake") {
+    datatableEarthquake.row.add([timestamp, message]).draw(false);
+  }
+}
+
+function getEquakeDetectionStatus() {
+    fetch("/earthquake_status", {
+        method: "GET",
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            console.log("TESITNG RESPONSE-" + data.status_message);
+            const timestamp = new Date().toLocaleString();
+           if (data.status_message !== "No earthquake detected.") {
+              datatableEarthquake.row.add([timestamp, data.status_message]).draw(false);
+            }
+            logEquakeEvent(data.type, data.status_message);
+        })
+        .catch((error) => {
+            console.error("Error getting detection status:", error);
+        });
+}
+
+//line chart data
+var value_x = [];
+var value_y = [];
+var value_z = [];
+
+//get the line chart canvas
+var ctx = $("#line-chart");
+
+var chartdata = {
+    labels: [],
+    datasets: [
+        {
+            label: 'value_x',
+            backgroundColor: ['#D00000'],
+            borderColor:  ['#D00000'],
+            hoverbackgroundcolor: '#D00000',
+            hoverbordercolor: '#D00000',
+            fill: false,
+            borderWidth: 2,
+            linetension: 0.3,
+            radius: 0,
+            data: value_x
+        },
+        {
+            label: 'value_y',
+            backgroundColor: ['#232ED1'],
+            borderColor: ['#232ED1'],
+            hoverbackgroundcolor: '#232ED1',
+            hoverbordercolor: '#232ED1',
+            fill: false,
+            borderWidth: 2,
+            linetension: 0.3,
+            radius: 0,
+            data: value_y
+        },
+        {
+            label: 'value_z',
+            backgroundColor: ['#2CDA9D'],
+            borderColor: ['#2CDA9D'],
+            hoverbackgroundcolor: '#2CDA9D',
+            hoverbordercolor: '#2CDA9D',
+            fill: false,
+            linetension: 0,
+            radius: 0,
+            data: value_z
+        },
+    ]
+};
+
+//options
+var options = {
+    responsive: true,
+    title: {
+        display: true,
+        position: "top",
+        text: "chart",
+        fontsize: 18,
+        fontcolor: "#111"
+},
+legend: {
+    display: true,
+    position: "top",
+    labels: {
+        fontcolor: "#333",
+        fontsize: 16
+        }
+    },
+    scales: {
+        yaxes: [{
+        scalelabel: {
+            display: true,
+            labelstring: 'value [ ]'
+        },
+        ticks: {
+            beginatzero: true
+        }
+        }]
+    }
+};
+
+//create chart class object
+var chart = new Chart(ctx, {
+    type: "line",
+    data: chartdata,
+    options: options
+});
+
+function getXYZ_value(){
+  fetch("/xyz_values", {
+    method: "GET",
+  })
+  .then((response) => response.json())
+  .then((data) => {
+            console.log("TESTING RESPONSE-" + data.x_value);
+            console.log("TESTINNG RESPONSE-" + data.y_value);
+            console.log("TESTING RESPONSE-" + data.z_value);
+
+            const timestamp = new Date().toLocaleString();
+
+            addLabelToChart(chart, timestamp);
+            addDataToChart(chart, data.x_value, "value_x")
+            addDataToChart(chart, data.y_value, "value_y")
+            addDataToChart(chart, data.z_value, "value_z")
+
+
+        })
+        .catch((error) => {
+            console.error("Error getting xyz values:", error);
+        });
+}
+
+//add new data to earthquake chart
+function addDataToChart(chart, newData, set) {
+    if(set == "value_x"){
+      chart.data.datasets[0].data.push(newData);
+    }
+
+    if(set == "value_y"){
+      chart.data.datasets[1].data.push(newData);
+    }
+
+    if(set == "value_z"){
+      chart.data.datasets[2].data.push(newData);
+    }
+    chart.update();
+}
+
+function addLabelToChart(chart, label) {
+    chart.data.labels.push(label);
+    chart.update();
+}
+</script>
+
+<script>
+const FIRESMOKE_DETECT_INTERVAL = 2000;
+
+ let datatableFireSmoke = new DataTable('#fire-smoke-table-logs', {
+    scrollCollapse: true,
+    scrollY: '90vh',
+    dom: 'Bfrtip',
+    buttons: ['csv', 'excel', 'pdf', 'print'],
+  });
+
+  let fireLogHistory = document.getElementById("fire-smoke-table-logs");
+
+  document.addEventListener("DOMContentLoaded", function () {
+    startDetection("fire");
+  });
+
+  function startDetection(type) {
+    fetch("/start_detection", {
+      method: "POST",
+      body: JSON.stringify({
+        type: type,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data.message);
+        if (data.message === "Detection started successfully") {
+          document.getElementById("webcam-img").src ="{{ url_for('webapp') }}";
+          setInterval(getDetectionStatus, FIRESMOKE_DETECT_INTERVAL);
+          logEvent(type, "Detection started");
+        }
+      })
+      .catch((error) => {
+        console.error("Error starting detection:", error);
+      });
+  }
+
+  function logEvent(type, message) {
+  const timestamp = new Date().toLocaleString();
+
+  if (type === "fire") {
+    datatableFireSmoke.row.add([timestamp, message]).draw(false);}
+}
+
+function getDetectionStatus() {
+    fetch("/detection_status", {
+        method: "GET",
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            console.log("TESITNG RESPONSE-" + data.status_message);
+            const timestamp = new Date().toLocaleString();
+           if (data.status_message !== "No fire or smoke detected.") {
+              datatableFireSmoke.row.add([timestamp, data.status_message]).draw(false);
+            }
+            logEvent(data.type, data.status_message);
+        })
+        .catch((error) => {
+            console.error("Error getting detection status:", error);
+        });
+}
+</script>
